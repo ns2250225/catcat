@@ -1,0 +1,15 @@
+{
+  "name": "流浪猫小院 Stray Cat Yard",
+  "short_name": "流浪猫小院",
+  "description": "2D 像素治愈系流浪猫收集经营游戏",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#1b1a24",
+  "theme_color": "#2a2230",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
