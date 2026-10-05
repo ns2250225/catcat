@@ -23,7 +23,7 @@ const info = computed(() => {
     occ,
     stats: Object.entries(d.stats).map(([k, v]) => `${STAT_LABEL[k as keyof typeof STAT_LABEL] ?? k}+${v}`).join('  '),
     x: Math.min(window.innerWidth - 250, Math.max(8, m.x - 110)),
-    y: Math.min(window.innerHeight - 260, Math.max(56, m.y - 40)),
+    y: Math.min(window.innerHeight - 290, Math.max(56, m.y - 40)),
   }
 })
 
@@ -46,6 +46,19 @@ function clean() {
   const i = info.value
   if (i && !g.cleanLitter(i.b)) store.toast('已经很干净了', '✨')
   else store.buildingMenu = null
+}
+/** 进入仅移动模式，直接拖动该设施换位置 */
+function moveTo() {
+  const i = info.value
+  if (!i) return
+  store.startMove(i.b)
+}
+function storeIt() {
+  const i = info.value
+  if (!i) return
+  g.storeBuilding(i.b)
+  store.buildingMenu = null
+  store.toast(`已把「${i.d.name}」收回仓库`, '📦')
 }
 </script>
 
@@ -90,6 +103,11 @@ function clean() {
 
     <div class="muted occ">
       {{ info.occ.length ? `正在使用：${info.occ.join('、')}` : `可同时容纳 ${info.d.capacity} 只猫` }}
+    </div>
+
+    <div class="acts manage">
+      <button class="px-btn small" title="直接拖动它换个位置" @click="moveTo">✥ 移动</button>
+      <button class="px-btn small" title="收回仓库，之后可再放置" @click="storeIt">📦 收回仓库</button>
     </div>
   </div>
 </template>
@@ -146,5 +164,10 @@ html.portrait .menu {
 }
 .occ {
   margin-top: 8px;
+}
+.manage {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px dotted #e0cba6;
 }
 </style>

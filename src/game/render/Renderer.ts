@@ -16,6 +16,8 @@ TextureSource.defaultOptions.scaleMode = 'nearest'
 
 export interface BuildState {
   active: boolean
+  /** 仅移动模式（从设施菜单进入）：不显示建造面板 */
+  moveOnly: boolean
   placing: string | null // 正在放置的设施 id
   flip: boolean
   skin: number
@@ -106,11 +108,12 @@ export class Renderer {
   private hoverCat: Cat | null = null
   private pointer = { x: 0, y: 0, down: false, moved: false, sx: 0, sy: 0 }
   private meeting = false
-  build: BuildState = { active: false, placing: null, flip: false, skin: 0, selected: null, dragging: null, hover: null }
+  build: BuildState = { active: false, moveOnly: false, placing: null, flip: false, skin: 0, selected: null, dragging: null, hover: null }
   onCatClick?: (c: Cat) => void
   onBuildingClick?: (b: PlacedBuilding, sx: number, sy: number) => void
   onBuildSelect?: (b: PlacedBuilding | null) => void
   onPlaced?: (ok: boolean) => void
+  onMoveEnd?: () => void
   onEmptyClick?: () => void
 
   constructor(private g: Game) {}
@@ -1108,7 +1111,10 @@ export class Renderer {
       if (this.build.placing) {
         this.build.placing = null
         this.onPlaced?.(false)
+        return
       }
+      // 右键退出仅移动模式
+      if (this.build.moveOnly) this.onMoveEnd?.()
     })
   }
 
@@ -1132,7 +1138,14 @@ export class Renderer {
       if (b) {
         const d = def(b)
         const t = pxToTile(x - ((d.w - 1) * TILE) / 2, y - ((d.h - 1) * TILE) / 2)
-        if (!(t.x === b.x && t.y === b.y) && !g.moveBuilding(b, t.x, t.y)) g.toast('这里放不下哦', '⚠️')
+        const same = t.x === b.x && t.y === b.y
+        const moved = !same && g.moveBuilding(b, t.x, t.y)
+        if (!same && !moved) g.toast('这里放不下哦', '⚠️')
+        // 仅移动模式：挪到位后自动结束
+        if (moved && this.build.moveOnly) {
+          this.onMoveEnd?.()
+          return
+        }
         this.onBuildSelect?.(b)
       }
       return
@@ -1140,6 +1153,8 @@ export class Renderer {
     const b = this.buildingAt(x, y)
     this.build.selected = b?.uid ?? null
     this.onBuildSelect?.(b)
+    // 仅移动模式：点到空地视为结束
+    if (!b && this.build.moveOnly) this.onMoveEnd?.()
   }
 
   giftIndexAt(x: number, y: number) {

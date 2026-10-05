@@ -514,6 +514,26 @@ export class Game {
     return g
   }
 
+  /** 一键收取地上所有礼物，返回收取数量 */
+  collectAllGifts() {
+    const n = this.s.gifts.length
+    if (!n) return 0
+    // 只有一份时走单个打开的完整流程（弹窗展示内容）
+    if (n === 1) return this.openGift(0) ? 1 : 0
+    for (const gf of this.s.gifts.splice(0)) {
+      this.stat('giftsOpened')
+      this.collectItems(gf.items)
+    }
+    audio.sfx('gift')
+    if (this.s.tutorialStep === 3) {
+      this.s.tutorialStep = 4
+      this.bus.emit('tutorial')
+    }
+    this.toast(`收下了 ${n} 份礼物，都放进仓库了`, '🎁')
+    this.changed()
+    return n
+  }
+
   collectItems(items: string[], silent = false) {
     for (const id of items) {
       this.s.inventory[id] = (this.s.inventory[id] ?? 0) + 1

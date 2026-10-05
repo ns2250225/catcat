@@ -11,6 +11,7 @@ import BottomBar from '@/components/BottomBar.vue'
 import CatCard from '@/components/CatCard.vue'
 import BuildingMenu from '@/components/BuildingMenu.vue'
 import BuildPanel from '@/components/BuildPanel.vue'
+import MoveBar from '@/components/MoveBar.vue'
 import Encyclopedia from '@/components/Encyclopedia.vue'
 import Inventory from '@/components/Inventory.vue'
 import VisitLog from '@/components/VisitLog.vue'
@@ -61,6 +62,7 @@ onMounted(async () => {
     store.bump()
   }
   r.onPlaced = () => store.bump()
+  r.onMoveEnd = () => store.endMove()
 
   game.bus.on('change', () => store.bump())
   game.bus.on('tick', () => store.tickV++)
@@ -97,6 +99,8 @@ watch(
   (p) => {
     const r = store.renderer
     if (!r) return
+    // 切换面板时退出仅移动模式
+    if (store.moveMode) store.endMove()
     r.build.active = p === 'build'
     if (p !== 'build') {
       r.build.placing = null
@@ -114,10 +118,11 @@ watch(
     <div ref="host" class="host"></div>
     <template v-if="store.started">
       <TopBar />
-      <LiveFeed v-if="portrait && store.panel !== 'build' && !store.selectedCat && !store.buildingMenu" />
+      <LiveFeed v-if="portrait && store.panel !== 'build' && !store.moveMode && !store.selectedCat && !store.buildingMenu" />
       <BottomBar />
       <CatCard v-if="store.selectedCat" />
       <BuildingMenu v-if="store.buildingMenu" />
+      <MoveBar v-if="store.moveMode" />
       <BuildPanel v-if="store.panel === 'build'" />
       <Encyclopedia v-if="store.panel === 'dex'" />
       <Inventory v-if="store.panel === 'inventory'" />

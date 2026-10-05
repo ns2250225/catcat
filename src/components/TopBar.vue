@@ -41,6 +41,10 @@ function care() {
   const n = g.careAll()
   store.toast(n ? '猫碗、水碗都满了，猫砂也清理干净啦' : '一切都很好，暂时不需要照料', '🧺')
 }
+
+function collectGifts() {
+  g.collectAllGifts()
+}
 </script>
 
 <template>
@@ -54,6 +58,7 @@ function care() {
       <span class="it hide-sm" title="当前猫咪 / 可容纳">🐈 {{ info.cats }}/{{ info.max }}</span>
     </div>
     <button class="care px-btn small" title="补满猫粮与清水，清理猫砂与垃圾" @click="care">🧺 照料</button>
+    <button v-if="info.gifts" class="care px-btn small gift-btn" title="一键收取地上所有礼物" @click="collectGifts">🎁 {{ info.gifts }}</button>
     <button class="px-btn small" title="放大 / 缩小镜头" @click="zoom">🔍</button>
   </div>
 </template>
@@ -126,6 +131,12 @@ html.portrait .it small {
   display: none;
 }
 html.portrait .care {
+  padding: 3px 6px;
+}
+.gift-btn {
+  border-color: #c9a030;
+}
+html.portrait .gift-btn {
   padding: 3px 6px;
 }
 @media (max-width: 720px), (max-height: 500px) {

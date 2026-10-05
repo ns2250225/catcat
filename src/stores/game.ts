@@ -19,6 +19,7 @@ export const useGameStore = defineStore('game', () => {
   const selectedCat = shallowRef<Cat | null>(null)
   const buildingMenu = shallowRef<{ b: PlacedBuilding; x: number; y: number } | null>(null)
   const buildSelected = shallowRef<PlacedBuilding | null>(null)
+  const moveMode = ref(false)
   const dexFocus = ref<number | null>(null)
   const started = ref(false)
   const toasts = ref<{ id: number; text: string; icon: string }[]>([])
@@ -38,9 +39,36 @@ export const useGameStore = defineStore('game', () => {
     selectedCat.value = null
     buildingMenu.value = null
   }
+  /** 进入仅移动模式：直接拖动设施，不打开建造面板 */
+  function startMove(b: PlacedBuilding) {
+    const r = renderer.value
+    if (!r) return
+    moveMode.value = true
+    r.build.active = true
+    r.build.moveOnly = true
+    r.build.placing = null
+    r.build.dragging = null
+    r.build.selected = b.uid
+    selectedCat.value = null
+    buildingMenu.value = null
+    buildSelected.value = null
+    bump()
+  }
+  function endMove() {
+    const r = renderer.value
+    if (r) {
+      r.build.active = false
+      r.build.moveOnly = false
+      r.build.selected = null
+      r.build.dragging = null
+    }
+    moveMode.value = false
+    buildSelected.value = null
+    bump()
+  }
   function setRenderer(r: Renderer) {
     renderer.value = markRaw(r)
   }
 
-  return { version, tickV, panel, renderer, selectedCat, buildingMenu, buildSelected, dexFocus, started, toasts, bump, toast, open, setRenderer, game: markRaw(game) }
+  return { version, tickV, panel, renderer, selectedCat, buildingMenu, buildSelected, moveMode, dexFocus, started, toasts, bump, toast, open, startMove, endMove, setRenderer, game: markRaw(game) }
 })
